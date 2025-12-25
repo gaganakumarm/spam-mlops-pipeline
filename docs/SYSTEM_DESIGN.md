@@ -1,44 +1,68 @@
-# 🔬 Advanced System Design & MLOps Analysis
+# System Design & MLOps Analysis
 
-## 📈 Performance Considerations
-*Estimated based on local testing and FastAPI’s documented performance characteristics.*
+## Performance Characteristics
 
-- **Heuristic Path Latency:** ~2–5ms (string matching only).
-- **ML Inference Latency:** ~12–18ms for TF-IDF + Logistic Regression.
-- **Concurrency Model:** FastAPI’s async event loop enables efficient handling of concurrent requests.
+*Estimated from local testing and FastAPI’s documented runtime behavior.*
 
-> These figures represent **expected performance characteristics**, not formal load-test benchmarks.
-## 🛠️ Hybrid Decision Logic
-The system follows a "Fail-Fast" architecture to minimize latency:
+* **Heuristic path latency:** ~2–5 ms (regex / string matching only)
+* **ML inference latency:** ~12–18 ms (TF-IDF + Logistic Regression)
+* **Concurrency model:** Asynchronous request handling via FastAPI’s event loop
 
-1. **Request Ingress:** Raw text received via FastAPI.
-2. **Layer 1 (Heuristic):** Regex-based keyword matching (Deterministic).
-   - *If Match Found:* Returns "Spam" immediately (~2ms).
-3. **Layer 2 (ML Inference):** TF-IDF Vectorization + Logistic Regression (Statistical).
-   - *Result:* Returns classification based on probability (~15ms).
-4. **Data Governance:** The Inference service dynamically pulls the `Production` model from the MLflow artifact store.
----
-
-## 🔄 MLOps Lifecycle & Governance
-MLflow is used as a **model lifecycle manager**, not just an experiment logger:
-
-- **Experimentation:** Tracking accuracy and F1-score across training runs.
-- **Model Registry:** Registering models and manually promoting a stable version to `Production`.
-- **Decoupling:** Training iterations do not affect live inference unless explicitly promoted.
+> These values represent **expected performance characteristics**, not formal load-test results.
 
 ---
 
-## 🚦 Quality Gates (Design-Level)
-The system is **designed** to support automated quality checks, including:
+## Hybrid Inference Flow
 
-- **Metric Thresholds:** Blocking promotion of models below a defined accuracy or F1-score.
-- **Environment Parity:** Docker ensures consistency between training and inference environments.
+The system is designed around a **fail-fast inference strategy** to minimize average latency.
 
-> These checks are part of the **intended CI/CD design** and can be integrated using GitHub Actions.
+1. **Request Ingress**
+   Text input is received through the FastAPI service.
+
+2. **Layer 1 — Heuristic Filter (Deterministic)**
+
+   * Regex-based keyword matching
+   * Obvious spam is classified immediately
+   * Typical execution: ~2 ms
+
+3. **Layer 2 — ML Inference (Probabilistic)**
+
+   * TF-IDF vectorization
+   * Logistic Regression classification
+   * Typical execution: ~15 ms
+
+4. **Model Resolution**
+
+   * The inference service dynamically loads the model tagged `Production` from the MLflow registry
+   * Training artifacts are isolated from live traffic
 
 ---
 
-## 🔮 Future Roadmap & Scalability
-- **Monitoring:** Prometheus-based metrics for request volume and prediction distribution.
-- **Drift Detection:** Alerts when incoming text distributions diverge from training data.
-- **Horizontal Scaling:** Multiple FastAPI replicas behind an Nginx load balancer.
+## MLOps Lifecycle & Governance
+
+MLflow is used as a **model lifecycle control plane**, not just for experiment tracking.
+
+* **Experiment Tracking:** Accuracy and F1-score logged for each training run
+* **Model Registry:** Explicit registration and manual promotion to `Production`
+* **Isolation:** Training iterations cannot affect inference without an explicit promotion step
+
+This ensures predictable behavior in production while enabling rapid experimentation.
+
+---
+
+## Quality Gates (Design-Level)
+
+The system is architected to support automated validation during deployment:
+
+* **Metric Thresholds:** Prevent promotion of models below defined accuracy or F1-score baselines
+* **Environment Parity:** Docker enforces consistency between training and inference runtimes
+
+> These checks are part of the **intended CI/CD design** and can be enforced via GitHub Actions.
+
+---
+
+## Scalability & Future Enhancements
+
+* **Observability:** Prometheus metrics for request volume, latency, and prediction distribution
+* **Drift Detection:** Alerts on distribution shifts between incoming data and training data
+* **Horizontal Scaling:** Multiple FastAPI replicas behind an Nginx load balancer
