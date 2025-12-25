@@ -8,7 +8,15 @@
 - **Concurrency Model:** FastAPI’s async event loop enables efficient handling of concurrent requests.
 
 > These figures represent **expected performance characteristics**, not formal load-test benchmarks.
+## 🛠️ Hybrid Decision Logic
+The system follows a "Fail-Fast" architecture to minimize latency:
 
+1. **Request Ingress:** Raw text received via FastAPI.
+2. **Layer 1 (Heuristic):** Regex-based keyword matching (Deterministic).
+   - *If Match Found:* Returns "Spam" immediately (~2ms).
+3. **Layer 2 (ML Inference):** TF-IDF Vectorization + Logistic Regression (Statistical).
+   - *Result:* Returns classification based on probability (~15ms).
+4. **Data Governance:** The Inference service dynamically pulls the `Production` model from the MLflow artifact store.
 ---
 
 ## 🔄 MLOps Lifecycle & Governance
