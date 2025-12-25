@@ -23,6 +23,36 @@ The system employs a **Fail-Fast Layered Defense** to optimize for both speed an
 3. **Layer 2 (ML Inference):** If Layer 1 is inconclusive, the payload is vectorized via TF-IDF and processed by a Logistic Regression classifier.
 4. **Resolution:** The system fetches the active model artifact aliased as `Production` from the MLflow Registry, ensuring the API is decoupled from the training environment.
 
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant API as Inference API
+    participant H as Heuristic Engine
+    participant ML as MLflow Model Registry
+    participant S as Artifact Storage (S3/Local)
+    
+```mermaid
+    sequenceDiagram
+    autonumber
+    participant C as Client
+    participant API as Inference API
+    participant H as Heuristic Engine
+    participant ML as MLflow Model Registry
+    participant S as Artifact Storage (S3/Local)
+
+    C->>API: POST /predict
+    API->>H: Execute Regex Patterns
+    alt Obvious spam
+        H-->>API: Return "Spam" (2ms)
+    else Nuanced
+        API->>ML: Request 'Production' Model Metadata
+        ML-->>API: Return Artifact URI
+        API->>S: Fetch Model .pkl
+        S-->>API: Load Model
+        API->>API: Inference (15ms)
+    end
+    API-->>C: JSON Response
+```
 ---
 
 ##  3. MLOps Governance & Lifecycle
