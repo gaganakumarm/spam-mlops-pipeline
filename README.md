@@ -1,44 +1,125 @@
-# 🛡️ Hybrid Spam Detection Pipeline (MLOps)
+# Hybrid Spam Detection Pipeline
 
-## 🚀 One-Line Value Proposition
-A production-ready spam classification service using a hybrid heuristic-ML approach, managed with MLflow and containerized with Docker.
+## Overview
 
-## ⚠️ The Problem
-Standard ML models can be "black boxes" that fail on obvious cases or require high compute. This project provides a **reliable** alternative that combines human-defined rules with statistical learning.
-
-## 🏗️ Modular Architecture
-- **Inference Service:** FastAPI wrapper providing REST endpoints.
-- **Hybrid Logic:** Heuristic keyword filtering followed by a TF-IDF Logistic Regression model.
-- **Model Management:** MLflow for tracking experiments and versioning models.
-- **Orchestration:** Docker Compose for seamless, one-click deployment.
-
-## 📊 Experimentation & Results
-Using MLflow, I conducted a hyperparameter sweep to optimize the balance between precision and recall.
-
-
-
-- **Best Model:** Logistic Regression (C=1.0, N-gram range=(1,2))
-- **Accuracy:** 98.2%
-- **Governance:** Model promoted to `Production` stage via MLflow Registry for safe deployment.
-
-## 🛠️ Tech Stack
-- **Languages:** Python 3.9+
-- **Frameworks:** Scikit-Learn, FastAPI
-- **MLOps:** MLflow
-- **Infrastructure:** Docker, Docker Compose
-
-## 🚀 Quick Start
-1. Ensure Docker is running.
-2. Run `./run_demo.bat` (Windows) or `docker-compose up`.
-3. Open `http://localhost:8000/docs` to test the API.
-
-## 🧠 Key Design Decision: Why Hybrid?
-Instead of sending every request to the ML model, we use a **Heuristic Layer** first. 
-- **Pros:** Sub-millisecond response for obvious spam; deterministic behavior.
-- **Cons:** Rules are static. (Solved by the ML layer handling the nuances).
+A hybrid spam classification service that combines rule-based heuristics with a machine-learning model to deliver low-latency, reliable inference.
+The system is production-structured, versioned with MLflow, and containerized for reproducible deployment.
 
 ---
-📖 **System Design & Future Scalability:**  
-See [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md) for performance considerations, MLOps governance, and scaling strategy.
 
+## Problem
+
+Pure ML-based spam filters:
+
+* Add unnecessary latency for obvious cases
+* Can fail silently on rule-obvious inputs
+* Are harder to reason about in production
+
+This system addresses those issues by introducing a **deterministic heuristic layer** ahead of ML inference.
+
+---
+
+## Architecture
+
+```
+Client
+  ↓
+FastAPI Inference Service
+  ↓
+Heuristic Filter ──► Spam (early exit)
+  ↓
+TF-IDF Vectorizer
+  ↓
+Logistic Regression Model
+  ↓
+Prediction
+```
+
+**Key properties**
+
+* Early-exit path for obvious spam
+* ML inference only when required
+* Clear separation between inference, model lifecycle, and deployment
+
+---
+
+## Model & Experiments
+
+Experiments are tracked using MLflow to ensure reproducibility and controlled promotion.
+
+* **Model:** Logistic Regression
+* **Features:** TF-IDF (word n-grams 1–2)
+* **Best Configuration:** C = 1.0
+* **Accuracy:** 98.2%
+* **Deployment Policy:** Only models promoted to `Production` are loaded by the API
+
+> Training and inference are fully decoupled via the MLflow Model Registry.
+
+---
+
+## Performance Characteristics
+
+Measured on a standard local CPU environment.
+
+* **Heuristic path latency:** ~2–5 ms
+* **ML inference latency:** ~12–18 ms
+* **Concurrency:** FastAPI async request handling
+
+These are **expected runtime characteristics**, not formal load-test benchmarks.
+
+---
+
+## Tech Stack
+
+* **Language:** Python 3.9+
+* **ML:** Scikit-learn
+* **API:** FastAPI
+* **MLOps:** MLflow
+* **Infra:** Docker, Docker Compose
+
+---
+
+## Running the Service
+
+```bash
+docker-compose up
+```
+
+API documentation:
+
+```
+http://localhost:8000/docs
+```
+
+---
+
+## Design Rationale: Hybrid Inference
+
+Not all inputs require statistical modeling.
+
+**Advantages**
+
+* Reduced average latency
+* Deterministic behavior for known patterns
+* Lower compute cost under load
+
+**Limitations**
+
+* Heuristic rules are static
+* Offset by ML handling ambiguous cases
+
+---
+
+## Future Work
+
+* Model drift detection on incoming text distribution
+* Prometheus-based metrics for inference monitoring
+* Horizontal scaling behind a reverse proxy
+
+---
+
+## Documentation
+
+* System design and MLOps lifecycle:
+  [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md)
 
