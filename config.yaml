@@ -1,0 +1,13 @@
+data:
+  raw_path: "data/raw/synthetic_data.csv"
+  processed_path: "data/processed/dataset_clean.csv"
+
+artifacts:
+  model_path: "artifacts/model/model.pkl"
+  vectorizer_path: "artifacts/vectorizer/vectorizer.pkl"
+  metrics_path: "artifacts/metrics/metrics.json"
+
+mlflow:
+  experiment_name: "spam_classification"
+  model_name: "logistic_regression"
+  vectorizer_name: "tfidf_vectorizer"
