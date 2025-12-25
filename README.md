@@ -1,125 +1,75 @@
-# Hybrid Spam Detection Pipeline
+# Hybrid Spam Detection Pipeline (MLOps)
 
-## Overview
+A production-ready spam classification service that combines **rule-based heuristics** with **Machine Learning** to deliver high-accuracy, low-latency inference.
 
-A hybrid spam classification service that combines rule-based heuristics with a machine-learning model to deliver low-latency, reliable inference.
-The system is production-structured, versioned with MLflow, and containerized for reproducible deployment.
+## The Problem
 
----
+Standard ML-only filters often suffer from:
 
-## Problem
+* **Latency Bloat:** Processing obvious "WINNER!" spam through heavy models.
+* **Lack of Control:** Difficulty in overriding model mistakes without retraining.
+* **Silent Failures:** Ambiguity in "black-box" decision-making.
 
-Pure ML-based spam filters:
+## Architecture & Logic Flow
 
-* Add unnecessary latency for obvious cases
-* Can fail silently on rule-obvious inputs
-* Are harder to reason about in production
+This system utilizes a **Fail-Fast** design to minimize compute costs and maximize reliability.
 
-This system addresses those issues by introducing a **deterministic heuristic layer** ahead of ML inference.
-
----
-
-## Architecture
-
-```
-Client
-  ↓
-FastAPI Inference Service
-  ↓
-Heuristic Filter ──► Spam (early exit)
-  ↓
-TF-IDF Vectorizer
-  ↓
-Logistic Regression Model
-  ↓
-Prediction
-```
-
-**Key properties**
-
-* Early-exit path for obvious spam
-* ML inference only when required
-* Clear separation between inference, model lifecycle, and deployment
+1. **Heuristic Filter:** Immediate regex-based detection for "early-exit" (Spam).
+2. **TF-IDF + Logistic Regression:** Statistical analysis for nuanced or ambiguous cases.
+3. **Model Registry:** The Inference API dynamically pulls only the version tagged `Production`.
 
 ---
 
-## Model & Experiments
+## Experimentation & Results
 
-Experiments are tracked using MLflow to ensure reproducibility and controlled promotion.
+Managed via **MLflow**, I conducted a hyperparameter sweep across 13 runs to optimize for F1-Score and generalizability.
 
-* **Model:** Logistic Regression
-* **Features:** TF-IDF (word n-grams 1–2)
-* **Best Configuration:** C = 1.0
-* **Accuracy:** 98.2%
-* **Deployment Policy:** Only models promoted to `Production` are loaded by the API
-
-> Training and inference are fully decoupled via the MLflow Model Registry.
-
----
-
-## Performance Characteristics
-
-Measured on a standard local CPU environment.
-
-* **Heuristic path latency:** ~2–5 ms
-* **ML inference latency:** ~12–18 ms
-* **Concurrency:** FastAPI async request handling
-
-These are **expected runtime characteristics**, not formal load-test benchmarks.
+| Metric | Result |
+| --- | --- |
+| **Accuracy** | **98.2%** |
+| **F1-Score** | **0.975** |
+| **Best Params** | C=1.0, N-gram (1,2) |
+| **Stage** | `Production` |
 
 ---
 
 ## Tech Stack
 
-* **Language:** Python 3.9+
-* **ML:** Scikit-learn
-* **API:** FastAPI
-* **MLOps:** MLflow
-* **Infra:** Docker, Docker Compose
+* **Frameworks:** Scikit-Learn, FastAPI
+* **MLOps:** MLflow (Tracking & Registry)
+* **Infrastructure:** Docker, Docker Compose
+* **Language:** Python 3.12+
 
----
+## Quick Start
 
-## Running the Service
-
+1. **Ensure Docker is running.**
+2. **Start the environment:**
 ```bash
+# Windows
+./run_demo.bat
+
+# Linux/Mac
 docker-compose up
-```
-
-API documentation:
 
 ```
-http://localhost:8000/docs
-```
+
+
+3. **Test the API:** Navigate to `http://localhost:8000/docs` to use the interactive Swagger UI.
 
 ---
 
-## Design Rationale: Hybrid Inference
+## Performance Characteristics
 
-Not all inputs require statistical modeling.
+*Measured on a standard local CPU environment.*
 
-**Advantages**
-
-* Reduced average latency
-* Deterministic behavior for known patterns
-* Lower compute cost under load
-
-**Limitations**
-
-* Heuristic rules are static
-* Offset by ML handling ambiguous cases
+* **Heuristic Path Latency:** ~2–5ms
+* **ML Inference Latency:** ~12–18ms
+* **Throughput:** Optimized via FastAPI’s asynchronous event loop.
 
 ---
 
-## Future Work
+## Deep Dive
 
-* Model drift detection on incoming text distribution
-* Prometheus-based metrics for inference monitoring
-* Horizontal scaling behind a reverse proxy
-
----
-
-## Documentation
-
-* System design and MLOps lifecycle:
-  [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md)
+For a full analysis of the system architecture, MLOps lifecycle, and future scaling strategy, see:
+ **[SYSTEM_DESIGN.md](https://www.google.com/search?q=./docs/SYSTEM_DESIGN.md)**
 
