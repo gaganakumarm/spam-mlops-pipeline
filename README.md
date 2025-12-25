@@ -7,13 +7,22 @@ A "Fail-Fast" inference engine that catches 80% of spam via heuristics in <2ms, 
 
 ## System Architecture
 The system is designed as a modular microservice, decoupling the inference logic from the model lifecycle.
-
-
-
 - **FastAPI Layer:** Asynchronous request handling for high concurrency.
 - **Heuristic Filter:** Deterministic regex-based early exit.
 - **ML Registry:** Hot-swappable model artifacts via MLflow.
 
+```mermaid
+graph LR
+    User[Client Request] --> API[FastAPI Service]
+    API --> H{Layer 1: Heuristic}
+    H -- "Match" --> Exit((Early Exit))
+    H -- "No Match" --> ML[Layer 2: ML Inference]
+    ML --> Registry[MLflow Registry]
+    Registry --> Predict[Final Prediction]
+    Exit --> Predict
+    Predict --> User
+    style Exit fill:#f96,stroke:#333
+```
 ## Performance & Results
 | Metric | Value | Context |
 | :--- | :--- | :--- |
@@ -29,3 +38,4 @@ The system is designed as a modular microservice, decoupling the inference logic
 
 ---
 **Engineering Deep Dive:** See [**docs/SYSTEM_DESIGN.md**](./docs/SYSTEM_DESIGN.md) for architectural trade-offs, MLOps governance, and scalability roadmaps.
+
