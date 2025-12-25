@@ -12,7 +12,14 @@ Standard ML models can be "black boxes" that fail on obvious cases or require hi
 - **Model Management:** MLflow for tracking experiments and versioning models.
 - **Orchestration:** Docker Compose for seamless, one-click deployment.
 
+## 📊 Experimentation & Results
+Using MLflow, I conducted a hyperparameter sweep to optimize the balance between precision and recall.
 
+
+
+- **Best Model:** Logistic Regression (C=1.0, N-gram range=(1,2))
+- **Accuracy:** 98.2%
+- **Governance:** Model promoted to `Production` stage via MLflow Registry for safe deployment.
 
 ## 🛠️ Tech Stack
 - **Languages:** Python 3.9+
@@ -33,4 +40,5 @@ Instead of sending every request to the ML model, we use a **Heuristic Layer** f
 ---
 📖 **System Design & Future Scalability:**  
 See [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md) for performance considerations, MLOps governance, and scaling strategy.
+
 
