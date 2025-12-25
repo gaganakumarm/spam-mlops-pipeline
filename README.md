@@ -31,4 +31,6 @@ Instead of sending every request to the ML model, we use a **Heuristic Layer** f
 - **Cons:** Rules are static. (Solved by the ML layer handling the nuances).
 
 ---
-📖 **For a deep dive into benchmarks, MLOps lifecycle, and future scalability, see [SYSTEM_DESIGN.md](./docs/SYSTEM_DESIGN.md).**
+📖 **System Design & Future Scalability:**  
+See [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md) for performance considerations, MLOps governance, and scaling strategy.
+
